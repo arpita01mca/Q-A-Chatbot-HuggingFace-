@@ -1,5 +1,9 @@
 import streamlit as st
 from transformers import pipeline
+from langchain_community.llms import HuggingFacePipeline
+from langchain.prompts import ChatPromptTemplate
+from langchain.output_parsers import StrOutputParser
+from langchain.chains import LLMChain
 
 # -------------------------------
 # Streamlit UI
