@@ -1,8 +1,6 @@
-streamlit
-langchain
-langchain-openai
-langchain_community
-langchain_core
-python-dotenv
-transformers
-torch
+streamlit>=1.25
+transformers>=4.30
+torch>=2.0  # CPU version
+langchain>=0.1
+langchain_core>=0.0.250
+langchain_community>=0.0.55
