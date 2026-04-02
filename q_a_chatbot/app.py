@@ -25,12 +25,15 @@ max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 # -------------------------------
 @st.cache_resource
 def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
-    """Create a Hugging Face text2text-generation pipeline wrapped in LangChain."""
+    """
+    Create a Hugging Face text2text-generation pipeline wrapped in LangChain.
+    """
     text2text_pipe = pipeline(
         task="text2text-generation",  # Flan-T5 works with text2text
         model=model_name,
         temperature=temperature,
-        max_new_tokens=max_new_tokens
+        max_new_tokens=max_new_tokens,
+        pad_token_id=50256  # ensures the model stops correctly
     )
     # Wrap the HF pipeline so it can be called via LangChain
     llm = HuggingFacePipeline(pipeline=text2text_pipe)
@@ -45,9 +48,14 @@ user_input = st.text_input("You:", placeholder="Type your question here...")
 
 if user_input:
     try:
-        # Define a simple prompt template for LangChain
+        # Improved prompt template to prevent echoing the question
         prompt = PromptTemplate(
-            template="You are a helpful assistant. Answer clearly and politely:\n{question}",
+            template=(
+                "You are a helpful assistant.\n"
+                "Answer the following question clearly and politely.\n\n"
+                "Question: {question}\n"
+                "Answer:"
+            ),
             input_variables=["question"]
         )
 
