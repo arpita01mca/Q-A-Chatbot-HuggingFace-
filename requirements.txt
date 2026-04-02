@@ -1,9 +1,9 @@
 streamlit
-transformers>=4.37.0
-tokenizers>=0.14.3
-torch>=2.0
+transformers==4.37.2
+tokenizers==0.14.1
+torch==2.2.0
 langchain==0.1.16
-langchain-core==0.1.42
 langchain-community==0.0.32
-python-dotenv>=1.0
-huggingface-hub
+langchain-core==0.1.42
+python-dotenv==1.0.1
+huggingface-hub==0.20.3
