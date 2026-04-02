@@ -1,3 +1,4 @@
 venv/
 1-Q&A Chatbot/.env
 q_a_chatbot/.env
+.env
