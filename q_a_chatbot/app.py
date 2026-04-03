@@ -91,15 +91,16 @@ if user_input:
         # Run the model
         response = chain.run({"question": user_input})
 
-        # Remove repeated input if echoed
-        response = response.replace(user_input, "").strip()
+        # Remove echoed input if the model repeats it
+        if response.startswith(user_input):
+            response = response[len(user_input):].strip()
 
-        # Optional: limit to first 2 sentences
+        # Optional: shorten overly long answers (first 2 sentences)
         sentences = response.split(". ")
         if len(sentences) > 2:
             response = ". ".join(sentences[:2]) + "."
 
-        # Display as chat
+        # Display chat-style
         st.markdown(f"**You:** {user_input}")
         st.markdown(f"**Answer:** {response}")
 
