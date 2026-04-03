@@ -14,7 +14,9 @@ st.set_page_config(
 )
 
 st.title("🤖 QA Chatbot with Hugging Face")
-st.markdown("Ask any question below and get a helpful response from a Hugging Face model.")
+st.markdown(
+    "Ask any question below and get a helpful response from a Hugging Face model."
+)
 
 
 # -------------------------------
@@ -37,15 +39,15 @@ max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 @st.cache_resource
 def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
     """
-    Create Hugging Face text2text pipeline wrapped with LangChain
+    Create a Hugging Face text2text-generation pipeline wrapped in LangChain.
     """
     text2text_pipe = pipeline(
         task="text2text-generation",
         model=model_name,
         max_new_tokens=max_new_tokens,
-        do_sample=True,
+        do_sample=True,      # enable sampling
         temperature=temperature,
-        top_p=0.9
+        top_p=0.9            # nucleus sampling
     )
 
     llm = HuggingFacePipeline(pipeline=text2text_pipe)
@@ -61,7 +63,8 @@ llm = create_hf_pipeline(model_name, temperature, max_tokens)
 prompt = PromptTemplate(
     template=(
         "You are a helpful AI assistant.\n"
-        "Give a clear and complete answer.\n"
+        "Answer the question fully and clearly.\n"
+        "If the question asks for an example, provide one.\n"
         "Do not repeat the question.\n\n"
         "Question: {question}\n"
         "Answer:"
@@ -88,7 +91,7 @@ if user_input:
     try:
         response = chain.run({"question": user_input})
 
-        # Remove repeated input if model echoes it
+        # Remove repeated input if the model echoes it
         response = response.replace(user_input, "").strip()
 
         st.markdown(f"**Answer:** {response}")
