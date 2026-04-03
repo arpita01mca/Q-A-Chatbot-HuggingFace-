@@ -42,6 +42,9 @@ max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 # -------------------------------
 @st.cache_resource
 def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
+    """
+    Load a text2text-generation pipeline with sampling for more natural outputs.
+    """
     text2text_pipe = pipeline(
         task="text2text-generation",
         model=model_name,
@@ -56,15 +59,15 @@ def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
 llm = create_hf_pipeline(model_name, temperature, max_tokens)
 
 # -------------------------------
-# Stronger Prompt Template
+# Prompt Template
 # -------------------------------
 prompt = PromptTemplate(
     template=(
-        "You are a helpful AI assistant.\n"
-        "Answer clearly and concisely in plain English, suitable for beginners.\n"
+        "You are a helpful AI assistant for beginners.\n"
+        "Answer the question clearly and concisely in plain English.\n"
         "Do NOT repeat the question.\n"
-        "Provide a simple real-world example if relevant.\n"
-        "Keep it short and informative.\n\n"
+        "Provide a simple, real-world example if relevant.\n"
+        "Keep the answer short, friendly, and informative.\n\n"
         "Question: {question}\n"
         "Answer:"
     ),
@@ -88,14 +91,18 @@ if user_input:
     try:
         raw_response = chain.run({"question": user_input})
 
-        # Remove any repeated input
+        # Remove echoed input if model repeats the question
         response = re.sub(re.escape(user_input), "", raw_response, flags=re.IGNORECASE).strip()
 
         # Limit to first 2 sentences for clarity
         sentences = re.split(r'(?<=[.!?]) +', response)
-        response = ' '.join(sentences[:2])
+        response = ' '.join(sentences[:2]).strip()
 
-        # Display as chat
+        # Ensure the response ends with a period
+        if response and not response.endswith(('.', '!', '?')):
+            response += '.'
+
+        # Display chat-style
         st.markdown(f"**You:** {user_input}")
         st.markdown(f"**Answer:** {response}")
 
