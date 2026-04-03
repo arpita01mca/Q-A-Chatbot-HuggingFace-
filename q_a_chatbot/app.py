@@ -5,15 +5,58 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
 # -------------------------------
-# Streamlit UI
+# Page config
 # -------------------------------
 st.set_page_config(page_title="Hugging Face QA Chatbot", page_icon="🤖")
-st.title("🤖 QA Chatbot with Hugging Face")
-st.markdown("Ask any question below and get a helpful response from a Hugging Face model.")
 
+# -------------------------------
+# Custom CSS (fancy styles)
+# -------------------------------
+st.markdown("""
+<style>
+.user-msg {
+    background-color: #DCF8C6;
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin: 10px 0;
+    text-align: right;
+    font-size: 16px;
+}
+.bot-msg {
+    background-color: #F1F0F0;
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin: 10px 0;
+    text-align: left;
+    font-size: 16px;
+}
+.title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+.subtitle {
+    text-align: center;
+    color: gray;
+    margin-bottom: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------
+# Header
+# -------------------------------
+st.markdown('<div class="title">🤖 QA Chatbot with Hugging Face</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Ask anything and get a helpful response</div>', unsafe_allow_html=True)
+
+# -------------------------------
 # Sidebar settings
-st.sidebar.header("Settings")
-model_name = st.sidebar.selectbox( "Select a model", ["google/flan-t5-small", "google/flan-t5-base"] )
+# -------------------------------
+st.sidebar.header("⚙️ Settings")
+model_name = st.sidebar.selectbox(
+    "Select a model",
+    ["google/flan-t5-small", "google/flan-t5-base"]
+)
 temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7)
 max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 
@@ -22,30 +65,31 @@ max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 # -------------------------------
 @st.cache_resource
 def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
-    """
-    Create a Hugging Face text2text-generation pipeline wrapped in LangChain.
-    """
     text2text_pipe = pipeline(
-        task="text2text-generation",  # Flan-T5 works with text2text
+        task="text2text-generation",
         model=model_name,
         temperature=temperature,
         max_new_tokens=max_new_tokens,
-        pad_token_id=50256  # ensures the model stops correctly
+        pad_token_id=50256
     )
-    # Wrap the HF pipeline so it can be called via LangChain
     llm = HuggingFacePipeline(pipeline=text2text_pipe)
     return llm
 
 llm = create_hf_pipeline(model_name, temperature, max_tokens)
 
 # -------------------------------
+# Chat history (optional but nice)
+# -------------------------------
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# -------------------------------
 # User input
 # -------------------------------
-user_input = st.text_input("You:", placeholder="Type your question here...")
+user_input = st.text_input("Type your question here...")
 
 if user_input:
     try:
-        # Improved prompt template to prevent echoing the question
         prompt = PromptTemplate(
             template=(
                 "You are a helpful assistant.\n"
@@ -58,7 +102,19 @@ if user_input:
 
         chain = LLMChain(llm=llm, prompt=prompt)
         response = chain.run({"question": user_input})
-        st.markdown(f"**Bot:** {response}")
+
+        # Save chat
+        st.session_state.history.append(("user", user_input))
+        st.session_state.history.append(("bot", response))
 
     except Exception as e:
         st.error(f"⚠️ Error: {str(e)}")
+
+# -------------------------------
+# Display chat
+# -------------------------------
+for role, msg in st.session_state.history:
+    if role == "user":
+        st.markdown(f'<div class="user-msg">{msg}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="bot-msg">{msg}</div>', unsafe_allow_html=True)
