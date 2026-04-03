@@ -28,9 +28,7 @@ model_name = st.sidebar.selectbox(
     "Select a model",
     [
         "google/flan-t5-small",
-        "google/flan-t5-base",
-        "google/flan-t5-large",          
-        "tiiuae/falcon-7b-instruct",
+        "google/flan-t5-base"
     ]
 )
 
