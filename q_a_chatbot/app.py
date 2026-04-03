@@ -9,20 +9,30 @@ from langchain.prompts import PromptTemplate
 # -------------------------------
 st.set_page_config(
     page_title="Hugging Face QA Chatbot",
-    page_icon="🤖"
+    page_icon="🤖",
+    layout="wide"
 )
 
 st.title("🤖 QA Chatbot with Hugging Face")
-st.markdown("Ask any question below and get a helpful response from a Hugging Face model.")
+st.markdown(
+    "Ask any question below and get a helpful response from a Hugging Face model."
+)
 
 # -------------------------------
 # Sidebar Settings
 # -------------------------------
 st.sidebar.header("⚙️ Settings")
+
 model_name = st.sidebar.selectbox(
     "Select a model",
-    ["google/flan-t5-small", "google/flan-t5-base"]
+    [
+        "google/flan-t5-small",
+        "google/flan-t5-base",
+        "google/flan-t5-large",            # better reasoning
+        "tiiuae/falcon-7b-instruct",       # stronger instruction model
+    ]
 )
+
 temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7)
 max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 
@@ -32,8 +42,8 @@ max_tokens = st.sidebar.slider("Max Tokens", 50, 300, 150)
 @st.cache_resource
 def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
     """
-    Create a Hugging Face text2text-generation pipeline wrapped in LangChain
-    with sampling enabled for more natural outputs.
+    Create a Hugging Face text2text-generation pipeline wrapped in LangChain.
+    Enables sampling for more natural outputs.
     """
     text2text_pipe = pipeline(
         task="text2text-generation",
@@ -41,7 +51,7 @@ def create_hf_pipeline(model_name, temperature=0.7, max_new_tokens=150):
         max_new_tokens=max_new_tokens,
         do_sample=True,
         temperature=temperature,
-        top_p=0.9
+        top_p=0.9,
     )
     llm = HuggingFacePipeline(pipeline=text2text_pipe)
     return llm
@@ -54,10 +64,9 @@ llm = create_hf_pipeline(model_name, temperature, max_tokens)
 prompt = PromptTemplate(
     template=(
         "You are a helpful AI assistant.\n"
-        "Answer the question fully and clearly.\n"
-        "Do NOT repeat the question in your answer.\n"
-        "If the question asks for an example, provide a simple real-world example.\n"
-        "Answer in plain English suitable for beginners.\n\n"
+        "Answer the question clearly and concisely in plain English.\n"
+        "Do NOT repeat the question.\n"
+        "If an example is requested, provide a simple real-world example.\n\n"
         "Question: {question}\n"
         "Answer:"
     ),
@@ -79,16 +88,18 @@ user_input = st.text_input(
 # -------------------------------
 if user_input:
     try:
+        # Run the model
         response = chain.run({"question": user_input})
 
-        # Remove repeated input if the model echoes it
+        # Remove repeated input if echoed
         response = response.replace(user_input, "").strip()
 
-        # Optional: shorten overly long responses (first 2 sentences)
-        if len(response.split('.')) > 2:
-            response = '. '.join(response.split('.')[:2]) + '.'
+        # Optional: limit to first 2 sentences
+        sentences = response.split(". ")
+        if len(sentences) > 2:
+            response = ". ".join(sentences[:2]) + "."
 
-        # Display in chat-style format
+        # Display as chat
         st.markdown(f"**You:** {user_input}")
         st.markdown(f"**Answer:** {response}")
 
