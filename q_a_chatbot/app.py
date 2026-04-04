@@ -59,10 +59,11 @@ llm = create_hf_pipeline(model_name, max_tokens)
 prompt = PromptTemplate(
     template=(
         "You are a helpful AI assistant for beginners.\n"
-        "Answer the question clearly and accurately in plain English.\n"
-        "Do NOT repeat the question.\n"
-        "Keep the answer short (1–2 sentences).\n"
-        "Provide a simple, real-world example if relevant.\n\n"
+        "Answer clearly and accurately in plain English.\n"
+        "Do NOT say that AI learns from humans directly.\n"
+        "Focus on explaining that AI learns patterns from data and can create new content.\n"
+        "Keep the answer short (1–2 sentences) and friendly.\n"
+        "Always give a simple, real-world example if relevant.\n\n"
         "Question: {question}\n"
         "Answer:"
     ),
